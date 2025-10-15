@@ -1,50 +1,45 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+<!--
+同步影響報告：
+- 版本變更：1.0.0 → 1.1.0（次要版本 - 新增原則）
+- 修改的原則：無（所有先前範例已替換為新原則）
+- 新增章節：品質標準、效能需求、開發工作流程
+- 移除章節：無
+- 需要更新的範本：
+  ✅ .specify/templates/plan-template.md（憲法檢查章節已對齊）
+  ✅ .specify/templates/spec-template.md（已與品質需求對齊）
+  ✅ .specify/templates/tasks-template.md（已與工作流程需求對齊）
+- 待辦事項：無
+-->
 
-## Core Principles
+# 美股智慧分析儀表板憲法
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+## 核心原則
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+### 一、程式碼品質與可讀性
+所有程式碼必須以清晰度和可維護性為主要考量。程式碼必須是自我文件化的，使用有意義的變數名稱、清晰的函數結構，並在邏輯複雜處提供適當註解。每個模組必須有單一、明確定義的職責。程式碼必須遵循既定的樣式指南，在整個程式碼庫中保持一致。複雜度必須透過模組化設計、適當的抽象層次和避免過早優化來最小化。所有程式碼在合併前必須經過可讀性審查。金融資料處理邏輯必須特別清晰，確保數據計算的準確性。
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### 二、使用者體驗一致性
+所有面向使用者的元件必須在整個應用程式中提供一致的體驗。使用者介面必須遵循既定的設計模式，具有統一的樣式、互動模式和導覽流程。股價圖表必須提供一致的視覺呈現，包括顏色編碼（上漲為綠色，下跌為紅色）。錯誤訊息必須清晰、可操作，並以一致的方式呈現。對於超過2秒的數據載入，必須向使用者提供載入指示器。必須遵循無障礙標準，確保應用程式對所有使用者都可使用。使用者互動必須可預測，並遵循既定慣例。
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+### 三、效能需求
+所有程式碼在發布前必須達到定義的效能基準。金融數據API調用必須優化以在可接受的時間限制內執行。記憶體使用必須監控和優化，以防止洩漏和過度消耗，特別是處理大量歷史股價數據時。關鍵使用者路徑必須在預期負載條件下進行效能測試，包括圖表渲染和數據查詢。效能回歸必須在發布前識別和解決。所有效能需求必須被記錄、可測量，並在可能的情况下包含在自動化測試中。即時股價數據更新必須在1秒內完成。
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### 四、數據準確性與文件
+所有金融數據處理必須確保最高準確性。API端點必須有清晰的參數、回應和錯誤條件文件。技術指標計算（如移動平均線、RSI）必須透過註解和範例來解釋。數據源整合的架構決策必須記錄基本原理和考慮的替代方案。文件必須與程式碼變更保持同步。必須透過程式碼審查、配對程式設計和定期技術討論來鼓勵知識分享。所有數據變更必須有審計軌跡。
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+### 五、持續改進
+程式碼必須定期重構以提高品質和可維護性。數據獲取效能指標必須持續監控和優化。使用者回饋必須收集並納入未來的改進中。技術債務必須被追蹤並系統性地解決。新技術指標和圖表類型必須在提供明確效益時進行評估和採用。程式碼庫必須在不斷變化的市場需求中演進，同時保持高標準。
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+## 品質標準
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+程式碼品質必須使用客觀指標來衡量，包括複雜度分析和安全掃描。所有程式碼在合併前必須通過自動化品質閘門。必須為所有關鍵路徑定義效能基準，特別是數據獲取和圖表渲染。安全漏洞必須在發現後立即解決。金融數據處理的準確性必須驗證，確保計算結果正確。技術債務必須與功能開發一起被追蹤和優先排序。程式碼審查必須專注於正確性、可維護性和數據處理的準確性。
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+## 開發工作流程
 
-## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
+所有變更必須遵循既定的開發工作流程。功能必須從主開發分支的功能分支中開發。拉取請求必須包含文件更新，並且必須通過所有自動化檢查。程式碼審查必須在合併前由至少另一位開發人員進行。發布必須遵循語意版本控制，並有清晰的變更日誌。部署必須自動化，並具有回滾功能。金融數據源的變更必須經過特別審查，確保數據連續性和準確性。
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+## 治理
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+此憲法優於所有其他開發實踐和指南。此憲法的修正必須透過正式程序提出、討論和批准，並記錄基本原理。所有開發活動必須遵守這些原則。這些原則的違反必須有令人信服的理由，並記錄例外情況。在程式碼審查和品質保證過程中必須驗證對此憲法的遵守情況。金融數據處理的任何變更必須經過額外審查，確保符合監管要求和行業標準。
+
+**版本**：1.1.0 | **批准日期**：2025-10-15 | **最後修改日期**：2025-10-15

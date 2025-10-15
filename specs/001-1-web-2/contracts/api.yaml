@@ -1,0 +1,1094 @@
+
+openapi: 3.0.3
+info:
+  title: 美股智慧分析儀表板 API
+  description: 美股智慧分析儀表板的RESTful API，提供股票查詢、技術分析、使用者認證和觀察清單管理功能
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: support@stockdashboard.com
+
+servers:
+  - url: http://localhost:8000/api/v1
+    description: 開發環境
+  - url: https://api.stockdashboard.com/v1
+    description: 生產環境
+
+paths:
+  /stocks/{symbol}:
+    get:
+      tags:
+        - 股票數據
+      summary: 獲取股票基本信息和當前價格
+      description: 根據股票代碼獲取股票基本信息、當前價格和關鍵指標
+      operationId: getStockInfo
+      parameters:
+        - name: symbol
+          in: path
+          required: true
+          description: 股票代碼（如AAPL, GOOGL, BTC-USD）
+          schema:
+            type: string
+            pattern: '^[A-Z\^]{1,10}(-[A-Z]{3})?$'
+            example: AAPL
+      responses:
+        '200':
+          description: 成功返回股票信息
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StockInfo'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimitExceeded'
+
+  /stocks/{symbol}/history:
+    get:
+      tags:
+        - 股票數據
+      summary: 獲取股票歷史價格數據
+      description: 獲取指定時間範圍內的股票歷史價格數據
+      operationId: getStockHistory
+      parameters:
+        - name: symbol
+          in: path
+          required: true
+          description: 股票代碼
+          schema:
+            type: string
+            pattern: '^[A-Z\^]{1,10}(-[A-Z]{3})?$'
+            example: AAPL
+        - name: period
+          in: query
+          required: false
+          description: 時間範圍
+          schema:
+            type: string
+            enum: [1d, 5d, 1m, 3m, 6m, 1y, 5y, ytd, max]
+            default: 1m
+        - name: start_date
+          in: query
+          required: false
+          description: 開始日期（YYYY-MM-DD）
+          schema:
+            type: string
+            format: date
+        - name: end_date
+          in: query
+          required: false
+          description: 結束日期（YYYY-MM-DD）
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: 成功返回歷史價格數據
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PriceHistory'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimitExceeded'
+
+  /stocks/{symbol}/indicators:
+    get:
+      tags:
+        - 技術分析
+      summary: 獲取股票技術指標
+      description: 獲取股票的各種技術指標，包括移動平均線、RSI等
+      operationId: getTechnicalIndicators
+      parameters:
+        - name: symbol
+          in: path
+          required: true
+          description: 股票代碼
+          schema:
+            type: string
+            pattern: '^[A-Z\^]{1,10}(-[A-Z]{3})?$'
+            example: AAPL
+        - name: indicators
+          in: query
+          required: false
+          description: 要獲取的技術指標類型
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [sma, rsi, macd, bollinger]
+            default: ["sma", "rsi"]
+        - name: period
+          in: query
+          required: false
+          description: 計算週期
+          schema:
+            type: string
+            enum: [1m, 3m, 6m, 1y]
+            default: 3m
+      responses:
+        '200':
+          description: 成功返回技術指標
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TechnicalIndicators'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimitExceeded'
+
+  /stocks/{symbol}/valuation:
+    get:
+      tags:
+        - 基本面分析
+      summary: 獲取股票估值指標
+      description: 獲取股票的基本面估值指標，包括本益比、股價淨值比等
+      operationId: getValuationMetrics
+      parameters:
+        - name: symbol
+          in: path
+          required: true
+          description: 股票代碼
+          schema:
+            type: string
+            pattern: '^[A-Z\^]{1,10}(-[A-Z]{3})?$'
+            example: AAPL
+      responses:
+        '200':
+          description: 成功返回估值指標
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValuationMetrics'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimitExceeded'
+
+  /stocks/{symbol}/analysis:
+    get:
+      tags:
+        - 技術分析
+      summary: 獲取股票技術分析
+      description: 獲取基於技術指標的股票分析，包括趨勢、支撐阻力位和買賣信號
+      operationId: getTechnicalAnalysis
+      parameters:
+        - name: symbol
+          in: path
+          required: true
+          description: 股票代碼
+          schema:
+            type: string
+            pattern: '^[A-Z\^]{1,10}(-[A-Z]{3})?$'
+            example: AAPL
+      responses:
+        '200':
+          description: 成功返回技術分析
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TechnicalAnalysis'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimitExceeded'
+
+  /market/overview:
+    get:
+      tags:
+        - 市場概覽
+      summary: 獲取市場概覽
+      description: 獲取主要市場指數的當前狀態
+      operationId: getMarketOverview
+      responses:
+        '200':
+          description: 成功返回市場概覽
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MarketOverview'
+        '429':
+          $ref: '#/components/responses/RateLimitExceeded'
+
+  /auth/register:
+    post:
+      tags:
+        - 使用者認證
+      summary: 使用者註冊
+      description: 創建新的使用者帳戶
+      operationId: registerUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegistration'
+      responses:
+        '201':
+          description: 使用者註冊成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /auth/login:
+    post:
+      tags:
+        - 使用者認證
+      summary: 使用者登入
+      description: 驗證使用者憑證並返回JWT令牌
+      operationId: loginUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserLogin'
+      responses:
+        '200':
+          description: 登入成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /auth/refresh:
+    post:
+      tags:
+        - 使用者認證
+      summary: 刷新令牌
+      description: 使用刷新令牌獲取新的訪問令牌
+      operationId: refreshToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshTokenRequest'
+      responses:
+        '200':
+          description: 令牌刷新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /watchlists:
+    get:
+      tags:
+        - 觀察清單
+      summary: 獲取使用者的觀察清單
+      description: 獲取當前使用者的所有觀察清單
+      operationId: getWatchlists
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: 成功返回觀察清單
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Watchlist'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    post:
+      tags:
+        - 觀察清單
+      summary: 創建觀察清單
+      description: 創建新的觀察清單
+      operationId: createWatchlist
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WatchlistCreate'
+      responses:
+        '201':
+          description: 觀察清單創建成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Watchlist'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /watchlists/{watchlist_id}/items:
+    post:
+      tags:
+        - 觀察清單
+      summary: 添加股票到觀察清單
+      description: 向指定觀察清單添加股票
+      operationId: addWatchlistItem
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: watchlist_id
+          in: path
+          required: true
+          description: 觀察清單ID
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WatchlistItemAdd'
+      responses:
+        '201':
+          description: 股票添加成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WatchlistItem'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+    delete:
+      tags:
+        - 觀察清單
+      summary: 從觀察清單移除股票
+      description: 從指定觀察清單移除股票
+      operationId: removeWatchlistItem
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: watchlist_id
+          in: path
+          required: true
+          description: 觀察清單ID
+          schema:
+            type: string
+            format: uuid
+        - name: symbol
+          in: query
+          required: true
+          description: 要移除的股票代碼
+          schema:
+            type: string
+      responses:
+        '204':
+          description: 股票移除成功
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+components:
+  schemas:
+    StockInfo:
+      type: object
+      properties:
+        symbol:
+          type: string
+          example: AAPL
+          description: 股票代碼
+        name:
+          type: string
+          example: Apple Inc.
+          description: 公司名稱
+        asset_type:
+          type: string
+          enum: [stock, index, cryptocurrency]
+          example: stock
+          description: 資產類型
+        exchange:
+          type: string
+          example: NASDAQ
+          description: 交易所
+        currency:
+          type: string
+          example: USD
+          description: 交易貨幣
+        current_price:
+          type: number
+          format: float
+          example: 150.25
+          description: 當前價格
+        change:
+          type: number
+          format: float
+          example: 2.50
+          description: 價格變化
+        change_percent:
+          type: number
+          format: float
+          example: 1.69
+          description: 價格變化百分比
+        open_price:
+          type: number
+          format: float
+          example: 148.50
+          description: 開盤價
+        high_price:
+          type: number
+          format: float
+          example: 151.00
+          description: 最高價
+        low_price:
+          type: number
+          format: float
+          example: 147.75
+          description: 最低價
+        volume:
+          type: integer
+          format: int64
+          example: 52345678
+          description: 成交量
+        market_cap:
+          type: number
+          format: float
+          example: 2500000000000
+          description: 市值
+        pe_ratio:
+          type: number
+          format: float
+          example: 25.5
+          description: 本益比
+        week_52_high:
+          type: number
+          format: float
+          example: 180.50
+          description: 52週最高價
+        week_52_low:
+          type: number
+          format: float
+          example: 120.75
+          description: 52週最低價
+        last_update:
+          type: string
+          format: date-time
+          example: "2025-10-15T15:30:00Z"
+          description: 最後更新時間
+
+    PriceHistory:
+      type: object
+      properties:
+        symbol:
+          type: string
+          example: AAPL
+          description: 股票代碼
+        period:
+          type: string
+          example: 1m
+          description: 時間範圍
+        prices:
+          type: array
+          items:
+            $ref: '#/components/schemas/PricePoint'
+          description: 價格數據點
+
+    PricePoint:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+          example: "2025-10-15"
+          description: 日期
+        open:
+          type: number
+          format: float
+          example: 148.50
+          description: 開盤價
+        high:
+          type: number
+          format: float
+          example: 151.00
+          description: 最高價
+        low:
+          type: number
+          format: float
+          example: 147.75
+          description: 最低價
+        close:
+          type: number
+          format: float
+          example: 150.25
+          description: 收盤價
+        adjusted_close:
+          type: number
+          format: float
+          example: 150.10
+          description: 調整後收盤價
+        volume:
+          type: integer
+          format: int64
+          example: 52345678
+          description: 成交量
+
+    TechnicalIndicators:
+      type: object
+      properties:
+        symbol:
+          type: string
+          example: AAPL
+          description: 股票代碼
+        indicators:
+          type: object
+          properties:
+            sma:
+              type: object
+              properties:
+                sma_20:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/IndicatorPoint'
+                sma_50:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/IndicatorPoint'
+                sma_200:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/IndicatorPoint'
+            rsi:
+              type: array
+              items:
+                $ref: '#/components/schemas/IndicatorPoint'
+            macd:
+              type: object
+              properties:
+                macd:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/IndicatorPoint'
+                signal:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/IndicatorPoint'
+                histogram:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/IndicatorPoint'
+
+    IndicatorPoint:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+          example: "2025-10-15"
+          description: 日期
+        value:
+          type: number
+          format: float
+          example: 150.25
+          description: 指標值
+
+    ValuationMetrics:
+      type: object
+      properties:
+        symbol:
+          type: string
+          example: AAPL
+          description: 股票代碼
+        metrics:
+          type: object
+          properties:
+            market_cap:
+              type: number
+              format: float
+              example: 2500000000000
+              description: 市值
+            pe_ratio:
+              type: number
+              format: float
+              example: 25.5
+              description: 本益比
+            pb_ratio:
+              type: number
+              format: float
+              example: 15.2
+              description: 股價淨值比
+            ps_ratio:
+              type: number
+              format: float
+              example: 8.5
+              description: 股價銷售比
+            dividend_yield:
+              type: number
+              format: float
+              example: 0.5
+              description: 股息收益率（百分比）
+            eps:
+              type: number
+              format: float
+              example: 5.89
+              description: 每股收益
+            book_value_per_share:
+              type: number
+              format: float
+              example: 9.89
+              description: 每股帳面價值
+        last_update:
+          type: string
+          format: date-time
+          example: "2025-10-15T15:30:00Z"
+          description: 最後更新時間
+
+    TechnicalAnalysis:
+      type: object
+      properties:
+        symbol:
+          type: string
+          example: AAPL
+          description: 股票代碼
+        trend_direction:
+          type: string
+          enum: [bullish, bearish, neutral]
+          example: bullish
+          description: 趨勢方向
+        support_levels:
+          type: array
+          items:
+            type: number
+            format: float
+          example: [145.50, 140.25, 135.75]
+          description: 支撐位
+        resistance_levels:
+          type: array
+          items:
+            type: number
+            format: float
+          example: [155.75, 160.50, 165.25]
+          description: 阻力位
+        buy_signals:
+          type: array
+          items:
+            $ref: '#/components/schemas/TradingSignal'
+          description: 買入信號
+        sell_signals:
+          type: array
+          items:
+            $ref: '#/components/schemas/TradingSignal'
+          description: 賣出信號
+        confidence_score:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+          example: 0.75
+          description: 信心分數
+        analysis_date:
+          type: string
+          format: date
+          example: "2025-10-15"
+          description: 分析日期
+
+    TradingSignal:
+      type: object
+      properties:
+        signal_type:
+          type: string
+          enum: [strong_buy, buy, hold, sell, strong_sell]
+          example: buy
+          description: 信號類型
+        indicator:
+          type: string
+          example: RSI
+          description: 信號來源指標
+        strength:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+          example: 0.8
+          description: 信號強度
+        description:
+          type: string
+          example: RSI indicates oversold condition
+          description: 信號描述
+
+    MarketOverview:
+      type: object
+      properties:
+        indices:
+          type: array
+          items:
+            $ref: '#/components/schemas/MarketIndex'
+          description: 主要市場指數
+
+    MarketIndex:
+      type: object
+      properties:
+        symbol:
+          type: string
+          example: ^GSPC
+          description: 指數代碼
+        name:
+          type: string
+          example: S&P 500
+          description: 指數名稱
+        value:
+          type: number
+          format: float
+          example: 4500.25
+          description: 當前值
+        change:
+          type: number
+          format: float
+          example: 15.50
+          description: 變化
+        change_percent:
+          type: number
+          format: float
+          example: 0.35
+          description: 變化百分比
+        last_update:
+          type: string
+          format: date-time
+          example: "2025-10-15T15:30:00Z"
+          description: 最後更新時間
+
+    UserRegistration:
+      type: object
+      required:
+        - email
+        - password
+        - first_name
+        - last_name
+      properties:
+        email:
+          type: string
+          format: email
+          example: user@example.com
+          description: 電子郵件
+        password:
+          type: string
+          format: password
+          minLength: 8
+          example: SecureP@ss123
+          description: 密碼
+        first_name:
+          type: string
+          example: John
+          description: 名字
+        last_name:
+          type: string
+          example: Doe
+          description: 姓氏
+
+    UserLogin:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: user@example.com
+          description: 電子郵件
+        password:
+          type: string
+          format: password
+          example: SecureP@ss123
+          description: 密碼
+
+    RefreshTokenRequest:
+      type: object
+      required:
+        - refresh_token
+      properties:
+        refresh_token:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+          description: 刷新令牌
+
+    AuthResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+          description: 訪問令牌
+        refresh_token:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+          description: 刷新令牌
+        token_type:
+          type: string
+          example: bearer
+          description: 令牌類型
+        expires_in:
+          type: integer
+          example: 3600
+          description: 令牌過期時間（秒）
+        user:
+          $ref: '#/components/schemas/UserResponse'
+
+    UserResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+          description: 使用者ID
+        email:
+          type: string
+          format: email
+          example: user@example.com
+          description: 電子郵件
+        first_name:
+          type: string
+          example: John
+          description: 名字
+        last_name:
+          type: string
+          example: Doe
+          description: 姓氏
+        created_at:
+          type: string
+          format: date-time
+          example: "2025-01-15T10:30:00Z"
+          description: 帳戶建立時間
+        last_login:
+          type: string
+          format: date-time
+          example: "2025-10-15T08:45:00Z"
+          description: 最後登入時間
+
+    Watchlist:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440001
+          description: 觀察清單ID
+        name:
+          type: string
+          example: 我的觀察清單
+          description: 觀察清單名稱
+        description:
+          type: string
+          example: 我關注的科技股
+          description: 觀察清單描述
+        is_default:
+          type: boolean
+          example: true
+          description: 是否為預設觀察清單
+        created_at:
+          type: string
+          format: date-time
+          example: "2025-01-20T14:30:00Z"
+          description: 建立時間
+        updated_at:
+          type: string
+          format: date-time
+          example: "2025-10-15T09:15:00Z"
+          description: 最後更新時間
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/WatchlistItem'
+          description: 觀察清單項目
+
+    WatchlistCreate:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          example: 我的觀察清單
+          description: 觀察清單名稱
+        description:
+          type: string
+          example: 我關注的科技股
+          description: 觀察清單描述
+
+    WatchlistItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440002
+          description: 項目ID
+        symbol:
+          type: string
+          example: AAPL
+          description: 股票代碼
+        name:
+          type: string
+          example: Apple Inc.
+          description: 股票名稱
+        current_price:
+          type: number
+          format: float
+          example: 150.25
+          description: 當前價格
+        change:
+          type: number
+          format: float
+          example: 2.50
+          description: 價格變化
+        change_percent:
+          type: number
+          format: float
+          example: 1.69
+          description: 價格變化百分比
+        added_at:
+          type: string
+          format: date-time
+          example: "2025-10-10T11:20:00Z"
+          description: 添加時間
+        notes:
+          type: string
+          example: 長期持有
+          description: 個人筆記
+
+    WatchlistItemAdd:
+      type: object
+      required:
+        - symbol
+      properties:
+        symbol:
+          type: string
+          example: AAPL
+          description: 股票代碼
+        notes:
+          type: string
+          example: 長期持有
+          description: 個人筆記
+
+  responses:
+    NotFound:
+      description: 資源未找到
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: Not Found
+              message:
+                type: string
+                example: 股票代碼不存在
+              timestamp:
+                type: string
+                format: date-time
+                example: "2025-10-15T16:00:00Z"
+
+    BadRequest:
+      description: 請求參數錯誤
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: Bad Request
+              message:
+                type: string
+                example: 請求參數無效
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    field:
+                      type: string
+                      example: email
+                    message:
+                      type: string
+                      example: 電子郵件格式無效
+              timestamp:
+                type: string
+                format: date-time
+                example: "2025-10-15T16:00:00Z"
+
+    Unauthorized:
+      description: 未授權訪問
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: Unauthorized
+              message:
+                type: string
+                example: 無效的認證憑證
+              timestamp:
+                type: string
+                format: date-time
+                example: "2025-10-15T16:00:00Z"
+
+    Conflict:
+      description: 資源衝突
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: Conflict
+              message:
+                type: string
+                example: 電子郵件已存在
+              timestamp:
+                type: string
+                format: date-time
+                example: "2025-10-15T16:00:00Z"
+
+    RateLimitExceeded:
+      description: 請求頻率超限
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: Rate Limit Exceeded
+              message:
+                type: string
+                example: 請求頻率過高，請稍後再試
+              retry_after:
+                type: integer
+                example: 60
+                description: 建議重試間隔（秒）
+              timestamp:
+                type: string
+                format: date-time
+                example: "2025-10-15T16:00:00Z"
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT認證令牌
