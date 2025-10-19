@@ -12,8 +12,8 @@
 ## Technical Context
 
 **Language/Version**: Python 3.9+, JavaScript/ES6+
-**Primary Dependencies**: FastAPI, React 18+, yfinance, pandas, SQLAlchemy, Recharts, Supabase
-**Storage**: Supabase (基於PostgreSQL，用於用戶數據和觀察清單)，文件緩存（用於API響應緩存）
+**Primary Dependencies**: FastAPI, React 18+, yfinance, pandas, SQLAlchemy, Recharts, PostgreSQL
+**Storage**: 直接 PostgreSQL (用於用戶數據和觀察清單)，混合緩存策略（PostgreSQL緩存表 + Python內存緩存）
 **Testing**: pytest (後端), Jest/React Testing Library (前端) 或 NEEDS CLARIFICATION
 **Target Platform**: Web瀏覽器（Chrome, Firefox, Safari, Edge）
 **Project Type**: web (前後端分離架構)
@@ -164,17 +164,17 @@ frontend/
 ├── package.json
 └── Dockerfile
 
-supabase/
+database/
 ├── migrations/               # 數據庫遷移文件
-├── functions/              # Supabase Edge Functions
-└── seeders.sql             # 初始數據
+├── seeders.sql             # 初始數據
+└── init.sql                # 數據庫初始化腳本
 
 docker-compose.yml
 README.md
 .gitignore
 ```
 
-**Structure Decision**: 採用前後端分離的Web應用程式架構，backend目錄包含FastAPI應用程式，frontend目錄包含React應用程式。這種結構支持獨立開發和部署前後端，並符合現代Web應用程式的最佳實踐。
+**Structure Decision**: 採用前後端分離的Web應用程式架構，backend目錄包含FastAPI應用程式，frontend目錄包含React應用程式，database目錄包含PostgreSQL相關腳本。這種結構支持獨立開發和部署前後端，並符合現代Web應用程式的最佳實踐。
 
 ## Complexity Tracking
 

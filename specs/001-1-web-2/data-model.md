@@ -117,6 +117,15 @@ erDiagram
         string ip_address
         string user_agent
     }
+    
+    ApiCache {
+        uuid id PK
+        string cache_key UK
+        jsonb cache_data
+        timestamp expires_at
+        timestamp created_at
+        timestamp updated_at
+    }
 ```
 
 ## 實體詳細定義
@@ -304,6 +313,23 @@ erDiagram
 - ip_address必須符合有效IP格式
 - user_agent長度不超過500字符
 
+### ApiCache (API緩存)
+
+**描述**: 存儲API響應的緩存數據
+
+**欄位**:
+- `id` (UUID, PK): 唯一識別符
+- `cache_key` (String, UK): 緩存鍵，必須唯一
+- `cache_data` (JSONB): 緩存的數據
+- `expires_at` (Timestamp): 過期時間
+- `created_at` (Timestamp): 建立時間
+- `updated_at` (Timestamp): 最後更新時間
+
+**驗證規則**:
+- cache_key長度不超過255字符
+- expires_at必須晚於created_at
+- cache_data不能為空
+
 ## 索引策略
 
 ### 主要索引
@@ -318,6 +344,8 @@ erDiagram
 - `valuation_metric.symbol + valuation_metric.metric_date`: 支持估值指標查詢
 - `user_session.session_token`: 支持會話驗證
 - `user_session.user_id + user_session.expires_at`: 支持會話清理
+- `api_cache.cache_key`: 支持緩存查詢
+- `api_cache.expires_at`: 支持過期緩存清理
 
 ## 數據遷移策略
 

@@ -60,12 +60,22 @@ git clone <repository-url>
 cd buy-what
 ```
 
-### 2. 設置PostgreSQL數據庫（通過Supabase）
+### 2. 設置PostgreSQL數據庫
 
-#### 使用Supabase設置PostgreSQL
-1. 訪問 [Supabase](https://supabase.com) 並創建新帳戶
-2. 創建新項目，命名為 `stock-dashboard`
-3. 記錄項目URL和連接字符串（在項目設置 > Database中找到）
+#### 使用Docker設置PostgreSQL
+```bash
+# 啟動PostgreSQL容器
+docker run --name stock-db -e POSTGRES_PASSWORD=password -e POSTGRES_DB=stock_dashboard -p 5432:5432 -d postgres:13
+
+# 或者使用docker-compose（推薦）
+docker-compose up -d postgres
+```
+
+#### 手動設置PostgreSQL
+1. 安裝PostgreSQL 13+
+2. 創建數據庫：`CREATE DATABASE stock_dashboard;`
+3. 創建用戶：`CREATE USER stock_user WITH PASSWORD 'password';`
+4. 授權：`GRANT ALL PRIVILEGES ON DATABASE stock_dashboard TO stock_user;`
 
 #### 後端數據庫連接設置
 ```bash
@@ -73,8 +83,8 @@ cd backend
 
 # 設置環境變數
 cp .env.example .env
-# 編輯 .env 文件，添加Supabase連接字符串
-DATABASE_URL=postgresql://postgres:password@db.your-project-ref.supabase.co:5432/postgres
+# 編輯 .env 文件，添加PostgreSQL連接字符串
+DATABASE_URL=postgresql://stock_user:password@localhost:5432/stock_dashboard
 ```
 
 ### 3. 設置後端
@@ -285,16 +295,16 @@ docker run -d --name stock-frontend -p 80:80 stock-dashboard-frontend
 
 #### 後端 (.env)
 ```
-DATABASE_URL=postgresql://user:password@localhost:5432/stock_dashboard
+DATABASE_URL=postgresql://stock_user:password@localhost:5432/stock_dashboard
 SECRET_KEY=your-super-secret-key
 ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=30
 REFRESH_TOKEN_EXPIRE_DAYS=7
 YFINANCE_CACHE_TTL=300
-REDIS_URL=redis://localhost:6379
-
-# Supabase連接（用於開發環境）
-DATABASE_URL=postgresql://postgres:password@db.your-project-ref.supabase.co:5432/postgres
+# REDIS_URL=redis://localhost:6379  # 已移除Redis依賴
+CACHE_ENABLED=true
+CACHE_CLEANUP_INTERVAL=3600
+MEMORY_CACHE_SIZE=128
 ```
 
 #### 前端 (.env.local)
@@ -304,7 +314,7 @@ VITE_APP_VERSION=1.0.0
 ```
 
 #### 未來遷移到AWS RDS
-計劃未來從Supabase PostgreSQL遷移到AWS RDS，保持相同的表結構和數據
+計劃未來從本地PostgreSQL遷移到AWS RDS，保持相同的表結構和數據
 
 ## 故障排除
 

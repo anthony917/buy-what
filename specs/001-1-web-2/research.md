@@ -71,7 +71,7 @@
 
 **Rationale**:
 - Yahoo Finance API沒有官方速率限制文檔，但社區報告建議限制請求頻率
-- 實施Redis緩存來存儲近期的API響應，減少對外部API的直接調用
+- 實施混合緩存策略（PostgreSQL緩存表 + Python內存緩存）來存儲近期的API響應，減少對外部API的直接調用
 - 使用數據庫作為長期緩存，存儲歷史數據
 - 實施請求隊列和速率限制以避免被API封鎖
 
@@ -98,26 +98,24 @@
 
 ## 數據庫設計研究
 
-### Supabase vs 其他數據庫解決方案
+### PostgreSQL 數據庫解決方案
 
-**Decision**: 選擇 Supabase (基於PostgreSQL的BaaS平台)
+**Decision**: 選擇直接使用 PostgreSQL
 
 **Rationale**:
-- Supabase 提供了完整的後端即服務解決方案，包括PostgreSQL數據庫
-- 內建身份驗證系統，簡化用戶管理流程
-- 提供實時訂閱功能，適合股價數據即時更新需求
-- 自動生成API端點，減少後端開發工作量
-- 免費開發者層級，適合項目初期開發
-- 基於PostgreSQL，保留了PostgreSQL的所有優勢：
-  - 強大的JSON支持，適合存儲API響應
-  - 支持時間序列數據的高效查詢
-  - 強一致性保證金融數據的準確性
-  - 豐富的索引選項，優化查詢性能
-- 與React客戶端集成良好，支持實時數據同步
-- 開源且活躍的社區支持
+- 直接使用 PostgreSQL 提供了完全的數據庫控制權和靈活性
+- 強大的JSON支持，適合存儲API響應和複雜數據結構
+- 支持時間序列數據的高效查詢，特別適合金融數據分析
+- 強一致性保證金融數據的準確性
+- 豐富的索引選項，優化查詢性能
+- 使用 FastAPI + SQLAlchemy + asyncpg 提供高性能的異步數據庫操作
+- 通過自定義 JWT 實現提供安全的身份驗證
+- 使用 WebSocket 實現實時數據更新功能
+- 開源且龐大的社區支持，穩定可靠
+- 避免第三方服務依賴，提高系統自主可控性
 
 **Alternatives considered**:
-- 直接PostgreSQL: 需要自行設置和管理所有基礎設施
+- Supabase: 雖然方便但增加了不必要的依賴層
 - Firebase: NoSQL數據庫，不適合結構化金融數據
 - MongoDB: 靈活但對事務支持較弱，不適合金融數據
 - AWS Amplify: 功能豐富但學習曲線較陡峭
@@ -144,11 +142,14 @@
 - Access token有效期短（15-30分鐘）降低安全風險
 - Refresh token有效期長（7-30天）存儲在安全HTTP-only cookie中
 - 實施token輪換機制提高安全性
+- 使用自定義實現而非第三方服務，提高系統自主可控性
 
 **Implementation considerations**:
 - 使用強密碼學算法（HS256或RS256）
 - 實施適當的錯誤處理，不泄露敏感信息
-- 在服務器端維護token黑名單以支持登出功能
+- 在PostgreSQL中維護token黑名單以支持登出功能
+- 使用bcrypt進行密碼哈希處理
+- 實施適當的速率限制防止暴力破解
 
 ### 數據驗證與淨化
 
@@ -201,14 +202,14 @@
 - JWT with refresh token for 認證
 
 **數據庫與後端服務**:
-- Supabase (基於PostgreSQL) with 混合關係型和JSON存儲
-- Supabase Auth for 身份驗證
-- Supabase Realtime for 即時數據更新
+- 直接 PostgreSQL with 混合關係型和JSON存儲
+- 自定義 JWT 實現 for 身份驗證
+- WebSocket for 即時數據更新
 
 **部署**:
 - Docker + docker-compose
-- Supabase Edge Functions for 服務器端邏輯
-- Redis for 緩存
+- FastAPI for 服務器端邏輯
+- 混合緩存策略（PostgreSQL緩存表 + Python內存緩存）for 緩存
 - Prometheus + Grafana for 監控
 
-這個技術棧平衡了性能、開發效率、可維護性和可擴展性，特別適合金融數據應用的特殊需求。使用Supabase可以大幅簡化後端開發工作，特別是用戶認證和實時數據同步，同時保持對底層PostgreSQL數據庫的完全控制。
+這個技術棧平衡了性能、開發效率、可維護性和可擴展性，特別適合金融數據應用的特殊需求。直接使用PostgreSQL提供了完全的數據庫控制權，自定義JWT實現提高了系統自主可控性，同時保持了高性能和安全性。
